@@ -54,7 +54,13 @@
     <button>Console Trace</button>
     <button>Trigger a Global Error</button>
   </section>
-
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "9a98fb71a2c8482b8bf858ab0299fd01"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
   <script>
     let calculateBtn = document.querySelector('#calculate');
     calculateBtn.addEventListener('click', () => {
@@ -62,11 +68,97 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
+      try{
+      if(firstNum === ''  && secondNum === ''){
+        throw new BadNums('Bro! You gotta put numbers at least!')
+      }else if(firstNum === ''){
+        throw new BadNums('Missing a first number dawg')
+      }else if(secondNum === ''){
+        throw new BadNums('Missing a first number dawg')
+      }
       output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+    } catch (err) {
+      TrackJS.track('Testing TrackJS! Ran into when doing operations');
+      if(err.name === "BadNums"){
+        console.error("Ahhh, you ran into my custom error")
+      }else{
+        console.error(err);
+        console.error("Code ran into a error, sorry :(")
+      }
+    } finally {
+      console.log("Finally, I am logged!")
+    }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
     // TODO - Make buttons functional
+    errorBtns[0].addEventListener('click', () => {
+      console.log("Console Log Button");
+    });
+    errorBtns[1].addEventListener('click', () => {
+      console.error("Console Error Button");
+      TrackJS.track('Testing TrackJS! Error button clicked');
+    });
+    errorBtns[2].addEventListener('click', () => {
+      console.dir(document.head);
+    });
+    errorBtns[3].addEventListener('click', () => {
+      console.dirxml(document);
+    });
+    errorBtns[4].addEventListener('click', () => {
+      console.group("Some group");
+      console.info("This is some info about a group")
+    });
+    errorBtns[5].addEventListener('click', () => {
+      console.groupEnd("Some Group");
+    });
+    let list = [ { item: "Bannana", amount: 5 },
+        { item: "soda", amount: 10 },
+        { item: "Juice", amount: 100 },
+        { item: "Coult Goggles", amount: 100000 } ];
+
+    errorBtns[6].addEventListener('click', () => {
+      console.table(list);  
+    });
+    errorBtns[7].addEventListener('click', () => {
+      console.time();
+      console.log("timer started")
+    });
+    errorBtns[8].addEventListener('click', () => {
+      console.log("timer ended")
+      console.timeEnd();
+    });
+    errorBtns[9].addEventListener('click', () => {
+      const first = () => { second(); };
+      const second = () => { third(); };
+      const third = () => { fourth(); };
+      const fourth = () => { console.trace(); };
+      first();
+    });
+    errorBtns[10].addEventListener('click', () => {
+      try{
+        console.log("Oh no, get ready for a error");
+        throw new SyntaxError();
+      } catch {
+        TrackJS.track('Testing TrackJS! Global error triggered');
+        console.error("I told you there was a error coming ...")
+      } finally {
+        console.log("none the less, the finally block still executed")
+      }
+    });
+    class BadNums extends Error{
+      constructor(message) {
+        super(message);
+        this.name = "BadNums";
+      }
+    }
+
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      console.log(msg);
+      TrackJS.track('Testing TrackJS! window.onerror');
+      return false;
+    }
+
   </script>
 </body>
 </html>
